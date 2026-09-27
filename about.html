@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>關於與官方社群 | 皮卡學院 Pika Academy</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 圖示 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Identity Services (OAuth 2.0) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- 共用樣式 -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-950 text-white font-sans selection:bg-yellow-400 selection:text-gray-950 min-h-screen flex flex-col">
+
+  <!-- ==================== 頂部即時公告欄 (可點擊在線編輯) ==================== -->
+  <div id="top-announcement-bar" class="top-announcement-bar">
+    <i class="fa-solid fa-bullhorn text-xs animate-bounce"></i>
+    <span data-editable="global_announcement">⚡ 歡迎來到皮卡學院官方網站！每週定期更新 Scratch 教學與精選遊戲實況～</span>
+  </div>
+
+  <!-- ==================== 1. 頂部共用導覽列 ==================== -->
+  <nav class="sticky top-0 z-50 bg-gray-950/90 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <!-- 品牌 Logo -->
+      <a href="index.html" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-gray-950 shadow-lg shadow-yellow-500/20 group-hover:scale-105 transition transform">
+          <i class="fa-solid fa-bolt text-xl"></i>
+        </div>
+        <div>
+          <span class="text-xl font-black tracking-wider text-yellow-400 group-hover:text-yellow-300 transition" data-editable="brand_name">皮卡學院</span>
+          <span class="block text-[10px] tracking-widest text-gray-400 uppercase -mt-1 font-semibold">Pika Academy</span>
+        </div>
+      </a>
+
+      <!-- 導覽分頁連結 -->
+      <div class="hidden md:flex items-center space-x-7 text-sm font-medium text-gray-300">
+        <a href="index.html" class="nav-link hover:text-yellow-400">首頁</a>
+        <a href="videos.html" class="nav-link hover:text-yellow-400">影片專區</a>
+        <a href="qa.html" class="nav-link hover:text-yellow-400 flex items-center gap-1.5">
+          <i class="fa-regular fa-comment-dots text-yellow-400"></i>
+          <span>觀眾問答</span>
+        </a>
+        <a href="chat.html" class="nav-link hover:text-yellow-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-comments text-amber-400"></i>
+          <span>即時聊天</span>
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        </a>
+        <a href="about.html" class="nav-link active">關於與社群</a>
+      </div>
+
+      <!-- 右側動作區 -->
+      <!-- 右側動作區 (登入/註冊 + 站長會員名單 + 訂閱按鈕 + 手機選單按鈕) -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <!-- 站長專屬：會員名單管理按鈕 -->
+        <button id="admin-users-btn" onclick="openAdminUserModal()"
+                class="hidden items-center gap-1.5 bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold px-3 py-1.5 rounded-full text-xs transition shadow">
+          <i class="fa-solid fa-users"></i>
+          <span>會員名單</span>
+          <span id="nav-user-count-badge" class="bg-gray-950 text-yellow-400 text-[10px] px-1.5 py-0.2 rounded-full font-mono">0</span>
+        </button>
+
+        <!-- 站長專屬：官方發信 (SMTP) 設定按鈕 -->
+        <button id="admin-smtp-btn" onclick="openSmtpSettingsModal()"
+                class="hidden items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-yellow-300 border border-yellow-400/40 hover:border-yellow-400 font-bold px-2.5 py-1.5 rounded-full text-xs transition shadow" title="官方發信信箱 (SMTP) 設定">
+          <i class="fa-solid fa-envelope"></i>
+          <span class="hidden sm:inline">發信設定</span>
+        </button>
+
+        <!-- 會員登入 / 註冊按鈕 -->
+        <div id="auth-container" class="relative">
+          <button id="google-login-btn" onclick="handleGoogleAuthClick()"
+                  class="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-400 text-gray-200 font-medium px-3.5 py-2 rounded-full text-xs transition shadow">
+            <i class="fa-regular fa-user text-yellow-400 text-xs"></i>
+            <span>登入 / 註冊</span>
+          </button>
+          
+          <div id="user-profile-menu" class="hidden items-center gap-1.5 bg-gray-900 border border-gray-700 rounded-full pl-1.5 pr-2.5 py-1">
+            <div onclick="openUserProfileModal()" class="flex items-center gap-1.5 cursor-pointer hover:opacity-85 transition" title="點擊開啟個人資料與安全中心">
+              <img id="user-avatar" src="" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-yellow-400">
+              <span id="user-name" class="text-xs font-bold text-gray-200 max-w-[85px] truncate"></span>
+              <span id="admin-tag" class="hidden text-[10px] bg-yellow-400 text-gray-950 font-bold px-1.5 py-0.2 rounded">站長</span>
+            </div>
+            <button onclick="openUserProfileModal()" class="text-[11px] text-gray-400 hover:text-yellow-400 ml-0.5" title="個人設定、密碼變更與登入歷程">
+              <i class="fa-solid fa-gear"></i>
+            </button>
+            <button onclick="handleLogout()" class="text-[11px] text-gray-400 hover:text-red-400 ml-0.5" title="登出">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+
+        <a href="https://www.youtube.com/channel/UC845CxI3wszf2zrXyFJK0nw?sub_confirmation=1" target="_blank"
+           class="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold px-4 py-2 rounded-full text-xs sm:text-sm shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 flex items-center gap-1.5">
+          <i class="fa-brands fa-youtube text-base"></i>
+          <span>一鍵訂閱</span>
+        </a>
+
+        <!-- 手機版選單按鈕 -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-gray-400 hover:text-white p-2">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 手機版下拉導覽選單 -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 bg-gray-950 px-6 py-4 space-y-3 text-sm">
+      <a href="index.html" class="block text-gray-300 hover:text-yellow-400">首頁</a>
+      <a href="videos.html" class="block text-gray-300 hover:text-yellow-400">影片專區</a>
+      <a href="qa.html" class="block text-gray-300 hover:text-yellow-400">觀眾問答</a>
+      <a href="chat.html" class="block text-gray-300 hover:text-yellow-400 flex items-center justify-between">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-comments text-amber-400"></i> 即時聊天 ＆ 悄悄話</span>
+        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+      </a>
+      <a href="about.html" class="block text-yellow-400 font-bold">關於與社群</a>
+    </div>
+  </nav>
+
+  <!-- ==================== 2. 關於皮卡學院 ==================== -->
+  <header class="bg-gray-900/60 border-b border-gray-800 py-16">
+    <div class="max-w-5xl mx-auto px-6 text-center space-y-4">
+      <div class="inline-flex items-center gap-2 bg-yellow-950/80 text-yellow-400 text-xs px-4 py-1.5 rounded-full border border-yellow-700/60 shadow">
+        <i class="fa-solid fa-bolt"></i>
+        <span data-editable="about_header_badge">關於皮卡學院 Pika Academy</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white">
+        <span data-editable="about_header_h1_line1">用熱情打造好玩、好學的</span> <br>
+        <span class="brand-gradient-text" data-editable="about_header_h1_line2">程式與遊戲創作基地</span>
+      </h1>
+      <p class="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed" data-editable="about_header_desc">
+        皮卡學院由熱愛遊戲與程式創作的皮卡站長創立。我們相信每個人都能透過親手製作遊戲，掌握邏輯思維與創造力的鑰匙！
+      </p>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 py-14 flex-1 w-full space-y-16">
+
+    <!-- 核心特色 3 欄卡片 -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="pika-card rounded-3xl p-7 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-yellow-400/10 text-yellow-400 text-2xl flex items-center justify-center border border-yellow-400/20">
+          <i class="fa-solid fa-code"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white" data-editable="about_card1_title">零門檻 Scratch 教學</h3>
+        <p class="text-gray-400 text-xs sm:text-sm leading-relaxed" data-editable="about_card1_desc">
+          步驟拆解細緻、邏輯清楚好懂。從角色重力跳躍、打地鼠到大型專題遊戲，手把手帶你實現心中構想。
+        </p>
+      </div>
+
+      <div class="pika-card rounded-3xl p-7 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-red-600/10 text-red-400 text-2xl flex items-center justify-center border border-red-600/20">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white" data-editable="about_card2_title">精彩遊戲通關實況</h3>
+        <p class="text-gray-400 text-xs sm:text-sm leading-relaxed" data-editable="about_card2_desc">
+          貓咪大戰爭百抽激戰、降臨極難關卡攻略與熱門搞笑獨立遊戲實況，帶給所有觀眾歡樂與通關靈感。
+        </p>
+      </div>
+
+      <div class="pika-card rounded-3xl p-7 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 text-2xl flex items-center justify-center border border-indigo-500/20">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white" data-editable="about_card3_title">零距離學員社群</h3>
+        <p class="text-gray-400 text-xs sm:text-sm leading-relaxed" data-editable="about_card3_desc">
+          透過專屬 Discord 伺服器與官方問答系統，隨時解答同學程式卡關問題，與大家一同交流進步。
+        </p>
+      </div>
+    </section>
+
+    <!-- 官方社群卡片專區 -->
+    <section class="space-y-8">
+      <div class="text-center space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-black text-white">🚀 加入官方交流社群</h2>
+        <p class="text-gray-400 text-xs sm:text-sm">第一時間接收影片通知、一起討論專案或與皮卡聊天！</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Discord 專屬大卡片 -->
+        <div class="bg-gradient-to-br from-indigo-950 via-gray-900 to-gray-900 border border-indigo-500/50 rounded-3xl p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="w-14 h-14 rounded-2xl bg-[#5865F2] flex items-center justify-center text-white text-3xl shadow-xl shadow-indigo-600/40 group-hover:scale-105 transition">
+                <i class="fa-brands fa-discord"></i>
+              </div>
+              <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-700/60 px-3 py-1 rounded-full font-bold">
+                官方伺服器
+              </span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-black text-white" data-editable="about_discord_title">皮卡學院 Discord 基地</h3>
+              <p class="text-xs text-indigo-400 font-mono mt-0.5">discord.gg/W6sAgUxMW</p>
+            </div>
+            <ul class="text-xs sm:text-sm text-gray-300 space-y-2 pt-2 border-t border-gray-800" data-editable="about_discord_features">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-indigo-400"></i>
+                <span>Scratch 專題程式碼即時討論與求助</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-indigo-400"></i>
+                <span>直播與新片第一時間專屬推播通知</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-indigo-400"></i>
+                <span>語音聊天室與同樂遊戲約戰</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-8">
+            <a href="https://discord.gg/W6sAgUxMW" target="_blank"
+               class="w-full bg-[#5865F2] hover:bg-[#4752c4] text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2.5 text-sm">
+              <i class="fa-brands fa-discord text-lg"></i>
+              <span>點擊加入 Discord 伺服器</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Instagram 專屬大卡片 -->
+        <div class="bg-gradient-to-br from-pink-950/60 via-gray-900 to-gray-900 border border-pink-500/50 rounded-3xl p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 flex items-center justify-center text-white text-3xl shadow-xl shadow-pink-600/40 group-hover:scale-105 transition">
+                <i class="fa-brands fa-instagram"></i>
+              </div>
+              <span class="text-xs bg-pink-950 text-pink-300 border border-pink-700/60 px-3 py-1 rounded-full font-bold">
+                官方 IG 帳號
+              </span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-black text-white" data-editable="about_ig_title">Instagram: @pikep_i</h3>
+              <p class="text-xs text-pink-400 font-mono mt-0.5">instagram.com/pikep_i</p>
+            </div>
+            <ul class="text-xs sm:text-sm text-gray-300 space-y-2 pt-2 border-t border-gray-800" data-editable="about_ig_features">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-pink-400"></i>
+                <span>皮卡站長的創作幕後花絮與生活日常</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-pink-400"></i>
+                <span>精彩短影音搶先試看與限時動態投票</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-pink-400"></i>
+                <span>粉絲專屬限動提問箱與隨機互動</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-8">
+            <a href="https://www.instagram.com/pikep_i/" target="_blank"
+               class="w-full bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 hover:opacity-90 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-xl shadow-pink-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2.5 text-sm">
+              <i class="fa-brands fa-instagram text-lg"></i>
+              <span>追蹤 Instagram (@pikep_i)</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 合作聯繫與聯絡管道 -->
+    <section class="pika-card rounded-3xl p-8 sm:p-10 text-center space-y-5">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-yellow-400/10 text-yellow-400 text-2xl border border-yellow-400/20">
+        <i class="fa-regular fa-envelope"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-white">商業合作與教學諮詢</h3>
+      <p class="text-gray-400 text-sm max-w-lg mx-auto leading-relaxed">
+        如有程式教學講座邀請、品牌贊助或專案合作需求，歡迎直接透過官方電子信箱聯繫我們：
+      </p>
+      <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+        <a href="mailto:ytfgtfretftrr@gmail.com"
+           class="inline-flex items-center gap-2.5 bg-gray-950 hover:bg-gray-800 border border-gray-700 hover:border-yellow-400 text-yellow-400 font-mono text-sm sm:text-base px-6 py-3 rounded-2xl transition shadow-lg">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span>ytfgtfretftrr@gmail.com</span>
+        </a>
+        <button onclick="copyEmail()"
+                class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl transition">
+          <i class="fa-regular fa-copy"></i>
+          <span>複製信箱</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 🛡️ 官方防偽驗證與杜絕不實流言聲明專區 -->
+    <section class="bg-gradient-to-br from-yellow-950/30 via-gray-900 to-gray-950 border border-yellow-500/40 rounded-3xl p-8 sm:p-10 space-y-4 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-yellow-400/20 text-yellow-400 flex items-center justify-center text-2xl border border-yellow-400/30">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black text-white">官方真實性認證與防不實流言公告</h3>
+          <p class="text-xs text-yellow-400 font-medium">Official Authenticity & Anti-Disinformation Policy</p>
+        </div>
+      </div>
+      <div class="space-y-2 text-xs sm:text-sm text-gray-300 leading-relaxed pt-2 border-t border-gray-800">
+        <p>
+          為了維護創作者誠信與健康的學習社群，皮卡學院鄭重宣告：
+        </p>
+        <ul class="space-y-1.5 list-disc list-inside text-gray-400">
+          <li>皮卡學院唯一官方聯絡方式為電子信箱 <strong class="text-yellow-400 font-mono">ytfgtfretftrr@gmail.com</strong>。</li>
+          <li>皮卡學院官方認可社群僅限本網站、官方 YouTube 頻道、Instagram (<span class="text-pink-400">@pikep_i</span>) 及官方 Discord 伺服器。</li>
+          <li>任何聲稱代表皮卡學院私下募資、販售未授權教材、假冒站長名義散播內幕或不實流言者，均屬虛假詐欺與毀謗行為。</li>
+          <li>本站所有問答與留言均已啟用「智能防謠言機制」與「言論真實性審查」，任何抹黑不實言論一經查證將立即依法究責與刪除。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ==================== 動態自訂區塊掛載區 (由版面設計器動態增刪) ==================== -->
+    <div id="dynamic-blocks-container" class="space-y-6 my-10"></div>
+
+  </main>
+
+  <!-- ==================== 4. 共用頁尾 ==================== -->
+  <footer class="mt-auto bg-gray-900/90 border-t border-gray-800 py-12">
+    <div class="max-w-4xl mx-auto px-6 text-center space-y-5">
+      <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-yellow-400/10 text-yellow-400 text-xl border border-yellow-400/20">
+        <i class="fa-solid fa-bolt"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white">皮卡學院 Pika Academy</h3>
+      <div class="flex justify-center gap-6 text-sm text-gray-400">
+        <a href="index.html" class="hover:text-yellow-400 transition">首頁</a>
+        <a href="videos.html" class="hover:text-yellow-400 transition">所有影片</a>
+        <a href="qa.html" class="hover:text-yellow-400 transition">觀眾問答</a>
+        <a href="about.html" class="hover:text-yellow-400 transition">關於與社群</a>
+      </div>
+
+      <!-- 🛡️ 官方防偽與反不實流言宣告 -->
+      <div class="bg-gray-950/80 border border-gray-800 rounded-2xl p-4 text-xs text-gray-400 space-y-1.5 max-w-2xl mx-auto">
+        <div class="flex items-center justify-center gap-1.5 text-yellow-400 font-bold">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>皮卡學院官方認證與防偽聲明</span>
+        </div>
+        <p class="leading-relaxed text-gray-500">
+          皮卡學院唯一官方聯絡信箱為 <span class="text-gray-300 font-mono">ytfgtfretftrr@gmail.com</span>，官方社群為 YouTube、Instagram (@pikep_i) 與 Discord。凡非經上述官方渠道公開之消息，皆屬未經查證之不實流言，請勿輕信與傳播！
+        </p>
+      </div>
+
+      <div class="text-gray-600 text-xs pt-4 border-t border-gray-800/60">
+        &copy; 2026 皮卡學院 (Pika Academy). 聯絡信箱: ytfgtfretftrr@gmail.com
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== 會員登入與註冊彈窗 ==================== -->
+  <div id="oauth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl relative">
+      <button onclick="closeOAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- 標題與分頁切換 -->
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-yellow-400/20 text-yellow-400 flex items-center justify-center text-2xl border border-yellow-400/30">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-white">皮卡學院 會員中心</h3>
+            <p class="text-xs text-gray-400">官方正式帳號系統 ＆ Google 驗證</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1 bg-gray-950 p-1 rounded-xl border border-gray-800">
+          <button id="auth-tab-login" onclick="switchAuthTab('login')" class="py-2 text-xs font-bold rounded-lg transition bg-yellow-400 text-gray-950">
+            登入帳號
+          </button>
+          <button id="auth-tab-register" onclick="switchAuthTab('register')" class="py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white">
+            註冊新帳號
+          </button>
+        </div>
+      </div>
+
+      <!-- 分頁 1: 登入表單 -->
+      <form id="native-login-form" onsubmit="submitNativeLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">電子信箱或暱稱</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="text" id="login-account" required placeholder="例如：ytfgtfretftrr@gmail.com 或 暱稱"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">密碼</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="password" id="login-password" required placeholder="請輸入密碼"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs sm:text-sm shadow">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>登入皮卡學院</span>
+        </button>
+      </form>
+
+      <!-- 分頁 2: 註冊表單 -->
+      <form id="native-register-form" onsubmit="submitNativeRegister(event)" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">你的暱稱 / 稱呼</label>
+          <div class="relative">
+            <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="text" id="reg-username" required placeholder="例如：小皮卡學員"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">電子信箱 (Email)</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="email" id="reg-email" required placeholder="例如：student@gmail.com"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">信箱安全驗證碼 (6位數)</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+              <input type="text" id="reg-code" required maxlength="6" pattern="[0-9]{6}" placeholder="輸入 6 位數驗證碼"
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600 font-mono tracking-widest">
+            </div>
+            <button type="button" id="btn-send-code" onclick="sendVerificationCode()"
+                    class="px-3.5 py-2.5 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-950 text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap shadow">
+              <i class="fa-regular fa-paper-plane text-xs"></i>
+              <span id="btn-send-code-text">取得驗證碼</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">自訂密碼 (至少4碼)</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="password" id="reg-password" required minlength="4" placeholder="設定登入密碼"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">🎂 出生年月日 (生日) <span class="text-red-400 font-bold">* (必填)</span></label>
+          <div class="relative">
+            <i class="fa-solid fa-cake-candles absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="date" id="reg-birthday" required
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">📞 聯絡電話 <span class="text-red-400 font-bold">* (必填)</span></label>
+          <div class="relative">
+            <i class="fa-solid fa-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="tel" id="reg-phone" required placeholder="例如：0912-345-678"
+                   class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-600">
+          </div>
+        </div>
+        <!-- 選填住家地址 -->
+        <div class="pt-0.5">
+          <button type="button" onclick="toggleOptionalRegFields()" class="text-[11px] text-yellow-400/90 hover:text-yellow-300 font-bold flex items-center gap-1.5 focus:outline-none">
+            <i id="reg-optional-icon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+            <span>填寫住家地址（選填，要填不填都行）</span>
+          </button>
+          <div id="reg-optional-fields" class="mt-2 space-y-2.5 p-3 rounded-xl bg-gray-900/80 border border-gray-800/80 hidden">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">🏠 住家地址 <span class="text-gray-500 text-[10px]">(選填)</span></label>
+              <input type="text" id="reg-address" placeholder="例如：台北市信義區信義路五段..."
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+            </div>
+          </div>
+        </div>
+        <div class="flex items-start gap-2 pt-1">
+          <input type="checkbox" id="reg-truth-check" required class="w-4 h-4 mt-0.5 accent-yellow-400 cursor-pointer rounded">
+          <label for="reg-truth-check" class="text-[11px] text-gray-400 cursor-pointer select-none leading-tight">
+            我保證註冊資訊真實，絕不利用此帳號散布不實流言或毀謗言論。
+          </label>
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-400 hover:from-yellow-400 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs sm:text-sm shadow">
+          <i class="fa-solid fa-user-check"></i>
+          <span>免費註冊並立即登入</span>
+        </button>
+      </form>
+
+      <!-- Google OAuth 或 快速切換 -->
+      <div class="pt-3 border-t border-gray-800 space-y-2.5">
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-gray-800"></div>
+          <span class="flex-shrink mx-3 text-gray-500 text-[11px]">或使用其他方式</span>
+          <div class="flex-grow border-t border-gray-800"></div>
+        </div>
+        <div id="g-login-container" class="flex justify-center"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="simulateLogin('admin')"
+                  class="bg-yellow-400/20 hover:bg-yellow-400 text-yellow-300 hover:text-gray-950 text-xs font-bold py-2 px-3 rounded-xl border border-yellow-400/40 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-crown"></i>
+            <span>站長登入</span>
+          </button>
+          <button onclick="simulateLogin('viewer')"
+                  class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold py-2 px-3 rounded-xl border border-gray-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-user"></i>
+            <span>一般觀眾</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 站長會員資料庫管理中心 (只有站長可檢視) ==================== -->
+  <div id="admin-users-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 sm:p-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden relative">
+      <!-- 頂部標題列 -->
+      <div class="p-5 sm:p-6 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-yellow-950/40 via-gray-900 to-gray-900">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-yellow-400/20 text-yellow-400 flex items-center justify-center text-xl border border-yellow-400/30">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <span>皮卡學院 會員資料庫管理中心</span>
+              <span class="text-[10px] bg-yellow-400 text-gray-950 font-bold px-2 py-0.5 rounded-full">站長專屬</span>
+            </h3>
+            <p class="text-xs text-gray-400">完整檢視所有已註冊會員個資、提問次數與帳號管理</p>
+          </div>
+        </div>
+        <button onclick="closeAdminUserModal()" class="text-gray-400 hover:text-white text-xl p-2">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 統計數據卡片 & 搜尋工具列 -->
+      <div class="p-5 sm:p-6 border-b border-gray-800 bg-gray-950/60 space-y-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3.5">
+            <div class="text-[11px] text-gray-500">註冊會員總數</div>
+            <div id="stat-total-users" class="text-2xl font-black text-yellow-400 font-mono mt-1">0</div>
+          </div>
+          <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3.5">
+            <div class="text-[11px] text-gray-500">正常啟用帳號</div>
+            <div id="stat-active-users" class="text-2xl font-black text-green-400 font-mono mt-1">0</div>
+          </div>
+          <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3.5">
+            <div class="text-[11px] text-gray-500">違規停權帳號</div>
+            <div id="stat-suspended-users" class="text-2xl font-black text-red-400 font-mono mt-1">0</div>
+          </div>
+          <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3.5">
+            <div class="text-[11px] text-gray-500">今日新註冊</div>
+            <div id="stat-today-users" class="text-2xl font-black text-blue-400 font-mono mt-1">0</div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="text" id="admin-user-search" oninput="filterAdminUserList()" placeholder="搜尋會員暱稱、信箱或 ID..."
+                   class="w-full bg-gray-900 border border-gray-800 text-gray-200 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-yellow-400 transition placeholder-gray-500">
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button onclick="fetchAdminUsers()" class="px-3 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+            </button>
+            <button onclick="exportUsersCSV()" class="px-3.5 py-2 bg-yellow-400 hover:bg-yellow-300 text-gray-950 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-download"></i> 匯出 CSV 報表
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格內容區 -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div class="border border-gray-800 rounded-2xl overflow-x-auto bg-gray-950">
+          <table class="w-full text-left text-xs min-w-[850px]">
+            <thead class="bg-gray-900 text-gray-400 border-b border-gray-800 uppercase tracking-wider text-[10px]">
+              <tr>
+                <th class="py-3 px-3">會員資訊</th>
+                <th class="py-3 px-3">電子信箱</th>
+                <th class="py-3 px-3">權限</th>
+                <th class="py-3 px-3">生日 / 電話</th>
+                <th class="py-3 px-3">住家地址</th>
+                <th class="py-3 px-3">登入歷程</th>
+                <th class="py-3 px-3 text-center">提問數</th>
+                <th class="py-3 px-3">狀態</th>
+                <th class="py-3 px-3 text-right">站長管理操作</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-table-body" class="divide-y divide-gray-800 text-gray-300">
+              <tr>
+                <td colspan="9" class="py-8 text-center text-gray-500">
+                  <i class="fa-solid fa-spinner fa-spin text-xl text-yellow-400 mb-2"></i>
+                  <p>載入會員資料庫中...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 會員每次登入歷程彈窗 (站長專屬) ==================== -->
+  <div id="admin-user-logins-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-gray-800 flex items-center justify-between bg-gray-950">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-yellow-400/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-400/30">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div>
+            <h4 id="admin-logins-user-title" class="text-sm sm:text-base font-bold text-white">會員登入時間歷史紀錄</h4>
+            <p class="text-[11px] text-gray-400">每次登入的精確時間戳記、IP 與瀏覽環境</p>
+          </div>
+        </div>
+        <button onclick="closeUserLoginsModal()" class="text-gray-400 hover:text-white text-lg p-1.5">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5">
+        <div class="border border-gray-800 rounded-2xl overflow-hidden bg-gray-950">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-900 text-gray-400 border-b border-gray-800 text-[10px] uppercase">
+              <tr>
+                <th class="py-2.5 px-3">#</th>
+                <th class="py-2.5 px-3">每次登入時間</th>
+                <th class="py-2.5 px-3">IP 位址</th>
+                <th class="py-2.5 px-3">登入設備 / 瀏覽器</th>
+              </tr>
+            </thead>
+            <tbody id="admin-logins-tbody" class="divide-y divide-gray-800 text-gray-300">
+              <tr><td colspan="4" class="py-6 text-center text-gray-500">載入中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 官方郵件發信控制中心 (Google OAuth 2.0 / 傳統 SMTP) ==================== -->
+  <div id="admin-smtp-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-lg w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- 頂部標題 -->
+      <div class="p-5 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-amber-950/40 via-gray-900 to-gray-900">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-yellow-400/20 text-yellow-400 flex items-center justify-center text-xl border border-yellow-400/30 shadow-inner">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-white">官方郵件發信控制中心</h3>
+              <span id="smtp-status-badge"></span>
+            </div>
+            <p class="text-xs text-gray-400">配置安全發信機制，發送會員註冊 6 位數安全驗證信</p>
+          </div>
+        </div>
+        <button onclick="closeSmtpSettingsModal()" class="text-gray-400 hover:text-white text-lg p-1.5 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 發信模式切換分頁 Tab -->
+      <div class="px-5 pt-3 bg-gray-950/50 border-b border-gray-800 flex gap-2">
+        <button type="button" id="tab-btn-oauth" onclick="switchMailTab('oauth')"
+                class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-yellow-400 text-gray-950 shadow transition flex items-center justify-center gap-1.5">
+          <i class="fa-brands fa-google text-red-600"></i>
+          <span>Google OAuth 2.0 (推薦)</span>
+        </button>
+        <button type="button" id="tab-btn-smtp" onclick="switchMailTab('smtp')"
+                class="flex-1 py-2 px-3 text-xs font-semibold rounded-xl bg-gray-950 text-gray-400 hover:text-gray-200 transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-server"></i>
+          <span>傳統 SMTP 模式</span>
+        </button>
+      </div>
+
+      <!-- 設定表單與內容區 (滾動區) -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Panel 1: Google OAuth 2.0 -->
+        <div id="mail-panel-oauth" class="space-y-4">
+          <!-- OAuth 即時狀態卡片 -->
+          <div id="oauth-status-card" class="p-3.5 bg-yellow-950/40 border border-yellow-500/30 rounded-2xl text-xs space-y-1">
+            <div class="font-bold flex items-center gap-1.5 text-yellow-300">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Google OAuth 2.0 待授權</span>
+            </div>
+            <p class="text-gray-300 text-[11px] pt-1">
+              免用 16 位應用程式密碼，直接透過 Google 官方授權登入發送驗證碼！
+            </p>
+          </div>
+
+          <!-- 步驟指引卡片 -->
+          <div class="p-3.5 bg-gray-950 border border-gray-800 rounded-2xl text-xs space-y-2">
+            <div class="font-bold text-gray-200 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-yellow-400">
+                <i class="fa-solid fa-list-check"></i> Google Cloud 設定三步驟：
+              </span>
+              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-[11px] text-yellow-400 hover:underline flex items-center gap-1">
+                開啟 GCP 控制台 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+              </a>
+            </div>
+            <ol class="list-decimal list-inside text-gray-400 text-[11px] space-y-1 leading-relaxed">
+              <li>於 Google Cloud 啟用 <strong class="text-gray-300">Gmail API</strong>。</li>
+              <li>建立「OAuth 用戶端 ID」，應用程式類型選「網路應用程式 (Web application)」。</li>
+              <li>
+                已授權的重新導向 URI 請填入下方網址：
+                <div class="mt-1 flex items-center gap-1 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
+                  <code class="text-[10px] text-yellow-300 flex-1 truncate" id="oauth-redirect-uri-display">http://localhost:5000/api/auth/google/oauth2callback</code>
+                  <button type="button" onclick="copyOAuthRedirectUri()" class="text-[10px] text-gray-400 hover:text-white px-1.5 py-0.5 bg-gray-800 rounded">複製</button>
+                </div>
+              </li>
+              <li>將取得的 Client ID 與 Client Secret 填入下方並點「儲存設定」，再點「登入 Google 授權發信」即可！</li>
+            </ol>
+          </div>
+
+          <form id="admin-oauth-form" onsubmit="saveMailSettings(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Google Client ID (用戶端編號)</label>
+              <input type="text" id="oauth-client-id" placeholder="例如：123456789-xxx.apps.googleusercontent.com"
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 font-mono">
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Google Client Secret (用戶端密鑰)</label>
+              <input type="password" id="oauth-client-secret" placeholder="請輸入 Google Client Secret"
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 font-mono tracking-wider">
+            </div>
+
+            <div class="flex gap-2 pt-1">
+              <button type="submit" class="flex-1 bg-gray-800 hover:bg-gray-700 text-yellow-300 border border-yellow-400/40 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>儲存憑證設定</span>
+              </button>
+              <button type="button" id="btn-oauth-connect" onclick="startGoogleOAuth()"
+                      class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-brands fa-google text-red-500"></i>
+                <span>登入 Google 授權發信</span>
+              </button>
+            </div>
+
+            <button type="button" id="btn-oauth-disconnect" onclick="disconnectGoogleOAuth()"
+                    class="w-full hidden bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-500/30 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-link-slash"></i>
+              <span>解除 Google OAuth 發信授權</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Panel 2: 傳統 SMTP 模式 -->
+        <div id="mail-panel-smtp" class="hidden space-y-4">
+          <div class="p-3.5 bg-yellow-950/40 border border-yellow-500/30 rounded-2xl text-xs text-yellow-200/90 leading-relaxed space-y-1">
+            <div class="font-bold flex items-center gap-1.5 text-yellow-300">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>Google 應用程式密碼模式</span>
+            </div>
+            <p class="text-gray-300 text-[11px]">
+              若使用 SMTP 發信，請先至 Google 帳戶「安全性」開啟兩步驟驗證，並在「應用程式密碼」生成 16 位密碼填入下方。
+            </p>
+          </div>
+
+          <form id="admin-smtp-form" onsubmit="saveMailSettings(event)" class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-gray-950 border border-gray-800 rounded-xl">
+              <div>
+                <label for="smtp-enabled" class="text-xs font-bold text-gray-200 cursor-pointer">啟用傳統 SMTP 郵件發送</label>
+                <p class="text-[10px] text-gray-500">關閉時自動使用本機沙盒模式</p>
+              </div>
+              <input type="checkbox" id="smtp-enabled" class="w-5 h-5 accent-yellow-400 cursor-pointer rounded">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">SMTP 伺服器主機</label>
+                <input type="text" id="smtp-host" placeholder="smtp.gmail.com"
+                       class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">通訊埠 (Port)</label>
+                <input type="number" id="smtp-port" placeholder="465"
+                       class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">加密方式</label>
+                <select id="smtp-security" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+                  <option value="ssl">SSL (Port 465, 推薦)</option>
+                  <option value="tls">STARTTLS (Port 587)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">寄件者顯示名稱</label>
+                <input type="text" id="smtp-sender-name" placeholder="皮卡學院官方網站"
+                       class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">發信信箱 (Email)</label>
+              <input type="email" id="smtp-user" placeholder="例如：ytfgtfretftrr@gmail.com"
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400">
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Google 應用程式密碼 (16位)</label>
+              <input type="password" id="smtp-pass" placeholder="•••••••••••••••• (留空保持原密碼)"
+                     class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 font-mono tracking-wider">
+            </div>
+
+            <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-1.5 shadow">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>儲存 SMTP 設定</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- 寄送連線測試信工具區 (統一測試當前模式) -->
+        <div class="pt-4 border-t border-gray-800 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-vial-circle-check text-yellow-400"></i>
+              <span>發信連線在線測試</span>
+            </span>
+            <span class="text-[10px] text-gray-500">測試目前啟用之發信通道</span>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="email" id="smtp-test-email" placeholder="輸入接收測試信的信箱..."
+                   class="flex-1 bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-yellow-400">
+            <button type="button" id="btn-smtp-test" onclick="sendTestMail()"
+                    class="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 text-yellow-300 border border-yellow-400/40 rounded-xl text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shadow">
+              <span id="btn-smtp-test-text"><i class="fa-solid fa-paper-plane mr-1"></i> 發送測試信</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 會員個人資料與安全設定中心 (會員本人專屬) ==================== -->
+  <div id="user-profile-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- 頂部標題 -->
+      <div class="p-5 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-gray-900 via-gray-950 to-gray-900">
+        <div class="flex items-center gap-3">
+          <img id="profile-modal-avatar" src="" class="w-10 h-10 rounded-full border-2 border-yellow-400 bg-gray-950 object-cover">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-1.5">
+              <span>會員個人中心與帳號安全</span>
+            </h3>
+            <p class="text-xs text-gray-400">管理您的個資、生日、電話、密碼與登入紀錄</p>
+          </div>
+        </div>
+        <button onclick="closeUserProfileModal()" class="text-gray-400 hover:text-white text-lg p-1.5">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 分頁標籤 -->
+      <div class="p-3 border-b border-gray-800 bg-gray-950 flex gap-2">
+        <button id="profile-tab-info" onclick="switchProfileTab('info')" class="py-2 px-3 text-xs font-bold rounded-xl transition bg-yellow-400 text-gray-950 shadow">
+          <i class="fa-solid fa-user-pen mr-1"></i> 個人資料
+        </button>
+        <button id="profile-tab-pwd" onclick="switchProfileTab('pwd')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-key mr-1"></i> 變更密碼
+        </button>
+        <button id="profile-tab-logs" onclick="switchProfileTab('logs')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> 每次登入紀錄
+        </button>
+        <button id="profile-tab-bind" onclick="switchProfileTab('bind')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-link mr-1"></i> 帳號綁定
+        </button>
+      </div>
+
+      <!-- 分頁內容 -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- 分頁 1: 個人資料 -->
+        <form id="profile-panel-info" onsubmit="saveUserProfile(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">暱稱 / 稱呼</label>
+            <input type="text" id="profile-username" required class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">電子信箱 (不可變更)</label>
+            <input type="email" id="profile-email" readonly class="w-full bg-gray-950/60 border border-gray-800 text-gray-500 text-xs rounded-xl px-3.5 py-2.5 cursor-not-allowed">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">🎂 生日 <span class="text-gray-500 text-[10px]">(選填)</span></label>
+              <input type="date" id="profile-birthday" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">📞 聯絡電話 <span class="text-gray-500 text-[10px]">(選填)</span></label>
+              <input type="tel" id="profile-phone" placeholder="例如：0912-345-678" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">🏠 住家地址 <span class="text-gray-500 text-[10px]">(選填，要填不填都行)</span></label>
+            <input type="text" id="profile-address" placeholder="例如：台北市信義區信義路五段..." class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存個人資料
+          </button>
+        </form>
+
+        <!-- 分頁 2: 變更密碼 -->
+        <form id="profile-panel-pwd" onsubmit="submitChangePassword(event)" class="space-y-3.5 hidden">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">目前舊密碼</label>
+            <input type="password" id="pwd-old" required placeholder="請輸入您目前使用的密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">設定新密碼 (至少 4 碼)</label>
+            <input type="password" id="pwd-new" required minlength="4" placeholder="請輸入欲變更的新密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">再次確認新密碼</label>
+            <input type="password" id="pwd-confirm" required minlength="4" placeholder="請再次輸入新密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-400 hover:from-yellow-400 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-shield-halved"></i> 確認更新密碼
+          </button>
+        </form>
+
+        <!-- 分頁 3: 每次登入紀錄 -->
+        <div id="profile-panel-logs" class="space-y-3 hidden">
+          <div class="flex items-center justify-between text-xs text-gray-400 pb-1">
+            <span>累計登入次數：<b id="my-logins-count" class="text-yellow-400 font-mono">0</b> 次</span>
+            <span class="text-[11px] text-gray-500">最近 50 次紀錄</span>
+          </div>
+          <div class="border border-gray-800 rounded-2xl overflow-hidden bg-gray-950">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-900 text-gray-400 border-b border-gray-800 text-[10px]">
+                <tr>
+                  <th class="py-2 px-3">#</th>
+                  <th class="py-2 px-3">每次登入時間</th>
+                  <th class="py-2 px-3">IP 位址</th>
+                </tr>
+              </thead>
+              <tbody id="my-logins-tbody" class="divide-y divide-gray-800 text-gray-300">
+                <tr><td colspan="3" class="py-6 text-center text-gray-500">載入中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 分頁 4: 帳號綁定 (Google, Discord, Scratch, YouTube) -->
+        <form id="profile-panel-bind" onsubmit="saveAccountBindings(event)" class="space-y-4 hidden">
+          <div class="bg-gray-950 border border-gray-800 rounded-2xl p-4 space-y-3.5">
+            <div class="border-b border-gray-800/80 pb-3 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                    <i class="fa-brands fa-google text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white">Google 帳號綁定 (OAuth 2.0)</div>
+                    <div id="bind-google-email" class="text-[11px] text-gray-500">載入中...</div>
+                  </div>
+                </div>
+                <div id="bind-google-status" class="text-xs">
+                  <span class="text-gray-400 text-[11px]">載入中...</span>
+                </div>
+              </div>
+              <div id="bind-google-action-area" class="pt-0.5">
+                <button type="button" onclick="startGoogleAccountBinding()"
+                        class="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-black py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow">
+                  <i class="fa-brands fa-google text-sm"></i>
+                  <span>透過 Google OAuth 授權綁定</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Discord 綁定 -->
+            <div class="space-y-1.5 pt-1">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-brands fa-discord text-indigo-400 text-sm"></i>
+                  <span>Discord 帳號名稱</span>
+                </label>
+                <span class="text-[10px] text-gray-500">同步社群身分組</span>
+              </div>
+              <input type="text" id="bind-discord-input" placeholder="例如：pikachu#1234 或 @pika_gaming"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+
+            <!-- Scratch 帳號綁定 -->
+            <div class="space-y-1.5 pt-1 border-t border-gray-800/80">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>🐱</span>
+                  <span>Scratch 官網帳號名稱</span>
+                </label>
+                <span class="text-[10px] text-yellow-400/90 font-bold">學員作品集展示</span>
+              </div>
+              <input type="text" id="bind-scratch-input" placeholder="請填寫 scratch.mit.edu 帳號"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+
+            <!-- YouTube 頻道綁定 -->
+            <div class="space-y-1.5 pt-1 border-t border-gray-800/80">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-brands fa-youtube text-red-500 text-sm"></i>
+                  <span>YouTube 頻道 / 代稱</span>
+                </label>
+                <span class="text-[10px] text-gray-500">創作者認證</span>
+              </div>
+              <input type="text" id="bind-youtube-input" placeholder="例如：@my_channel 或 頻道連結"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+          </div>
+
+          <button type="submit" id="save-bindings-btn"
+                  class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>儲存帳號綁定設定</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 共用腳本模組 -->
+  <script src="js/common.js"></script>
+  <!-- 在線即時編輯模組 -->
+  <script src="js/editor.js?v=2.2"></script>
+
+  <!-- 關於頁專用腳本 -->
+  <script>
+    function copyEmail() {
+      navigator.clipboard.writeText('ytfgtfretftrr@gmail.com').then(() => {
+        showToast('已複製官方信箱至剪貼簿！', 'success');
+      }).catch(() => {
+        showToast('信箱：ytfgtfretftrr@gmail.com', 'info');
+      });
+    }
+  </script>
+</body>
+</html>

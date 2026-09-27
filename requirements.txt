@@ -1,0 +1,2 @@
+# Pika Academy Requirements
+# Uses Python Standard Library (no external pip dependencies needed)

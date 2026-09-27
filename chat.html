@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即時聊天 ＆ 私密悄悄話 | 皮卡學院 Pika Academy</title>
+  <meta name="description" content="皮卡學院線上即時社群聊天室，與其他學員即時交流 Scratch 遊戲製作心得，亦可傳送僅站長可見的私密悄悄話！">
+  <link rel="icon" href="https://yt3.ggpht.com/c7-XOamMdC1EGpIV18j6_czYvrmdw1B1BJQtUfnKB61qxkwxbm9A80yw4JJZnhfC-WowWsGtng=s800-c-k-c0x00ffffff-no-rj" type="image/x-icon">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- 自訂共用樣式庫 -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .chat-scroll-container {
+      height: calc(100vh - 430px);
+      min-height: 420px;
+    }
+    .private-badge-pill {
+      background: rgba(147, 51, 234, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #d8b4fe;
+    }
+    .private-msg-card {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.5) 0%, rgba(15, 20, 32, 0.95) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+  </style>
+</head>
+<body class="text-gray-100 flex flex-col min-h-screen selection:bg-yellow-400 selection:text-gray-950">
+
+  <!-- ==================== 1. 全域共用頂部導覽列 ==================== -->
+  <nav class="sticky top-0 z-50 bg-[#0c111d]/90 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <!-- 品牌 Logo -->
+      <a href="index.html" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-2xl overflow-hidden border-2 border-yellow-400 flex items-center justify-center bg-gray-800 shadow">
+          <img src="https://yt3.ggpht.com/c7-XOamMdC1EGpIV18j6_czYvrmdw1B1BJQtUfnKB61qxkwxbm9A80yw4JJZnhfC-WowWsGtng=s800-c-k-c0x00ffffff-no-rj" alt="皮卡學院Logo" class="w-full h-full object-cover">
+        </div>
+        <div class="flex flex-col">
+          <span class="text-base sm:text-lg font-black tracking-wide text-white group-hover:text-yellow-400 transition flex items-center gap-1">
+            <span>皮卡學院</span>
+            <span class="text-yellow-400 text-xs">⚡</span>
+          </span>
+          <span class="text-[10px] text-gray-400 font-mono">Pika Academy</span>
+        </div>
+      </a>
+
+      <!-- 導覽分頁連結 -->
+      <div class="hidden md:flex items-center space-x-7 text-sm font-medium text-gray-300">
+        <a href="index.html" class="nav-link hover:text-yellow-400">首頁</a>
+        <a href="videos.html" class="nav-link hover:text-yellow-400">影片專區</a>
+        <a href="qa.html" class="nav-link hover:text-yellow-400">觀眾問答</a>
+        <a href="chat.html" class="nav-link active flex items-center gap-1.5">
+          <i class="fa-solid fa-comments text-yellow-400"></i>
+          <span>即時聊天</span>
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        </a>
+        <a href="about.html" class="nav-link hover:text-yellow-400">關於與社群</a>
+      </div>
+
+      <!-- 右側動作區 (登入/註冊 + 訂閱按鈕 + 手機選單按鈕) -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <!-- 會員登入 / 註冊按鈕 -->
+        <div id="auth-container" class="relative">
+          <button id="google-login-btn" onclick="handleGoogleAuthClick()"
+                  class="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-400 text-gray-200 font-medium px-3.5 py-1.5 rounded-full text-xs transition shadow">
+            <i class="fa-regular fa-user text-yellow-400 text-xs"></i>
+            <span>登入 / 註冊</span>
+          </button>
+          
+          <div id="user-profile-menu" class="hidden items-center gap-1.5 bg-gray-900 border border-gray-700 rounded-full pl-1.5 pr-2.5 py-1">
+            <div onclick="openUserProfileModal()" class="flex items-center gap-1.5 cursor-pointer hover:opacity-85 transition" title="點擊開啟個人資料">
+              <img id="user-avatar" src="" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-yellow-400">
+              <span id="user-name" class="text-xs font-bold text-gray-200 max-w-[85px] truncate"></span>
+              <span id="admin-tag" class="hidden text-[10px] bg-yellow-400 text-gray-950 font-bold px-1.5 py-0.2 rounded">站長</span>
+            </div>
+            <button onclick="handleLogout()" class="text-[11px] text-gray-400 hover:text-red-400 ml-0.5" title="登出">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+
+        <a href="https://www.youtube.com/channel/UC845CxI3wszf2zrXyFJK0nw?sub_confirmation=1" target="_blank"
+           class="bg-red-600 hover:bg-red-500 text-white font-bold px-3.5 py-1.5 rounded-full text-xs shadow transition flex items-center gap-1.5">
+          <i class="fa-brands fa-youtube text-sm"></i>
+          <span>訂閱</span>
+        </a>
+
+        <!-- 手機版選單按鈕 -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-gray-400 hover:text-white p-1.5">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 手機版下拉導覽選單 -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 bg-gray-950 px-6 py-4 space-y-3 text-sm">
+      <a href="index.html" class="block text-gray-300 hover:text-yellow-400">首頁</a>
+      <a href="videos.html" class="block text-gray-300 hover:text-yellow-400">影片專區</a>
+      <a href="qa.html" class="block text-gray-300 hover:text-yellow-400">觀眾問答</a>
+      <a href="chat.html" class="block text-yellow-400 font-bold flex items-center justify-between">
+        <span>即時聊天 ＆ 私密悄悄話</span>
+        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+      </a>
+      <a href="about.html" class="block text-gray-300 hover:text-yellow-400">關於與社群</a>
+    </div>
+  </nav>
+
+  <!-- ==================== 2. 聊天室 Header ==================== -->
+  <header class="bg-[#111726]/80 border-b border-[#232d42] py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+              <span>💬 即時交流廳 ＆ 悄悄話</span>
+            </h1>
+            <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+              <span>連線中</span>
+            </span>
+          </div>
+          <p class="text-gray-400 text-xs sm:text-sm mt-1.5 max-w-xl">
+            和線上的朋友們一起暢聊遊戲與 Scratch！若有不想公開的私事，可勾選 <strong class="text-purple-300">「🔒 私密悄悄話」</strong>，全站僅站長與你可見。
+          </p>
+        </div>
+
+        <!-- 聊天室篩選分頁 -->
+        <div class="flex items-center gap-1.5 bg-[#0b0f17] p-1 rounded-xl border border-gray-800 self-start sm:self-auto">
+          <button onclick="setChatFilter('all')" id="tab-all"
+                  class="text-xs px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-950 font-bold transition">
+            全部留言
+          </button>
+          <button onclick="setChatFilter('private')" id="tab-private"
+                  class="text-xs px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition flex items-center gap-1">
+            <i class="fa-solid fa-lock text-[10px]"></i>
+            <span>我的悄悄話</span>
+          </button>
+          <button onclick="setChatFilter('replied')" id="tab-replied"
+                  class="text-xs px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition flex items-center gap-1">
+            <i class="fa-solid fa-bolt text-yellow-400 text-[10px]"></i>
+            <span>站長回覆</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 3. 聊天主體容器 ==================== -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full flex flex-col">
+    <!-- 聊天室主要卡片 -->
+    <div class="bg-[#111726] border border-[#232d42] rounded-3xl shadow-2xl flex flex-col flex-1 overflow-hidden">
+      
+      <!-- 頂部工具列 (連線提示 + 自動重整切換) -->
+      <div class="px-5 py-3 border-b border-[#232d42] bg-[#0c111d] flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-circle text-[8px] text-green-400"></i>
+          <span id="chat-count-label">載入訊息中...</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="fetchChatMessages()" class="text-gray-400 hover:text-yellow-400 transition flex items-center gap-1">
+            <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+            <span>重新整理</span>
+          </button>
+          <label class="flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-gray-200">
+            <input type="checkbox" id="auto-refresh-toggle" checked onchange="toggleAutoRefresh(this.checked)" class="rounded accent-yellow-400">
+            <span>3秒自動更新</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 訊息列表滾動區 -->
+      <div id="chat-messages-container" class="chat-scroll-container overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div class="py-12 text-center text-gray-500 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-xl text-yellow-400 mb-2"></i>
+          <p>正在載入交流廳訊息...</p>
+        </div>
+      </div>
+
+      <!-- 底部輸入區域 -->
+      <div class="p-4 bg-[#0c111d] border-t border-[#232d42] space-y-3">
+        <!-- 狀態列：暱稱、私密悄悄話切換與快速表情 -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <input type="text" id="chat-sender-name" placeholder="你的暱稱 (如: 小智)"
+                   class="bg-[#151c2e] border border-[#2a3854] text-xs text-white rounded-lg px-3 py-1.5 w-36 sm:w-44 focus:outline-none focus:border-yellow-400 transition placeholder-gray-500">
+            
+            <!-- 🔒 私密悄悄話切換開關 -->
+            <label class="flex items-center gap-1.5 text-xs text-purple-300 bg-purple-950/40 border border-purple-600/40 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-purple-900/40 transition">
+              <input type="checkbox" id="chat-is-private" onchange="onPrivateToggleChange(this.checked)" class="accent-purple-500 rounded">
+              <span class="font-bold flex items-center gap-1">
+                <i class="fa-solid fa-lock text-[10px]"></i>
+                <span>設為私密悄悄話</span>
+              </span>
+            </label>
+          </div>
+
+          <!-- 快速表情按鈕 -->
+          <div class="flex items-center gap-1">
+            <button onclick="insertEmoji('⚡')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="閃電">⚡</button>
+            <button onclick="insertEmoji('🎮')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="遊戲手把">🎮</button>
+            <button onclick="insertEmoji('🐱')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="貓咪大戰爭">🐱</button>
+            <button onclick="insertEmoji('🔥')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="火熱">🔥</button>
+            <button onclick="insertEmoji('🎉')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="慶祝">🎉</button>
+            <button onclick="insertEmoji('👍')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="讚">👍</button>
+            <button onclick="insertEmoji('❤️')" class="hover:bg-gray-800 p-1.5 rounded text-sm" title="愛心">❤️</button>
+          </div>
+        </div>
+
+        <!-- 私密悄悄話模式提示條 (當勾選時顯示) -->
+        <div id="private-mode-hint" class="hidden bg-purple-950/60 border border-purple-500/50 rounded-xl px-3.5 py-2 text-xs text-purple-200 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-purple-400"></i>
+          <span><strong>🔒 私密訊息保護中</strong>：這則訊息不會發布給其他人看，只有「皮卡站長」和你能看到！</span>
+        </div>
+
+        <!-- 文字輸入框與發送按鈕 -->
+        <div class="flex items-end gap-2.5">
+          <div class="flex-1 relative">
+            <textarea id="chat-input" rows="2" placeholder="在此輸入想說的話... (Enter 發送，Shift+Enter 換行)"
+                      onkeydown="handleChatKeyDown(event)"
+                      class="w-full bg-[#151c2e] border border-[#2a3854] text-sm text-gray-100 rounded-xl p-3 focus:outline-none focus:border-yellow-400 transition placeholder-gray-500 resize-none"></textarea>
+          </div>
+          <button onclick="sendChatMessage()" id="send-msg-btn"
+                  class="bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-black px-5 py-3 rounded-xl shadow transition transform hover:-translate-y-0.5 flex items-center gap-2 shrink-0">
+            <span>送出</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== 4. 站長回覆彈窗 ==================== -->
+  <div id="admin-reply-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-[#111726] border border-yellow-400/50 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeAdminReplyModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="flex items-center gap-2 text-yellow-400 font-bold text-base">
+        <i class="fa-solid fa-reply"></i>
+        <span>站長官方回覆訊息</span>
+      </div>
+      <div id="reply-target-preview" class="bg-[#0b0f17] border border-gray-800 rounded-xl p-3 text-xs text-gray-300 max-h-24 overflow-y-auto"></div>
+      <textarea id="admin-reply-input" rows="3" placeholder="請輸入站長公開或私密回覆內容..."
+                class="w-full bg-[#0b0f17] border border-gray-700 text-sm text-white rounded-xl p-3 focus:outline-none focus:border-yellow-400 resize-none"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeAdminReplyModal()" class="px-4 py-2 text-xs rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300">取消</button>
+        <button onclick="submitAdminReply()" class="px-4 py-2 text-xs rounded-xl bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold">確認回覆</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 會員個人資料與安全設定中心 (會員本人專屬) ==================== -->
+  <div id="user-profile-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- 頂部標題 -->
+      <div class="p-5 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-gray-900 via-gray-950 to-gray-900">
+        <div class="flex items-center gap-3">
+          <img id="profile-modal-avatar" src="" class="w-10 h-10 rounded-full border-2 border-yellow-400 bg-gray-950 object-cover">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-1.5">
+              <span>會員個人中心與帳號安全</span>
+            </h3>
+            <p class="text-xs text-gray-400">管理您的個資、生日、電話、密碼與登入紀錄</p>
+          </div>
+        </div>
+        <button onclick="closeUserProfileModal()" class="text-gray-400 hover:text-white text-lg p-1.5">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 分頁標籤 -->
+      <div class="p-3 border-b border-gray-800 bg-gray-950 flex gap-2">
+        <button id="profile-tab-info" onclick="switchProfileTab('info')" class="py-2 px-3 text-xs font-bold rounded-xl transition bg-yellow-400 text-gray-950 shadow">
+          <i class="fa-solid fa-user-pen mr-1"></i> 個人資料
+        </button>
+        <button id="profile-tab-pwd" onclick="switchProfileTab('pwd')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-key mr-1"></i> 變更密碼
+        </button>
+        <button id="profile-tab-logs" onclick="switchProfileTab('logs')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> 每次登入紀錄
+        </button>
+        <button id="profile-tab-bind" onclick="switchProfileTab('bind')" class="py-2 px-3 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-link mr-1"></i> 帳號綁定
+        </button>
+      </div>
+
+      <!-- 分頁內容 -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- 分頁 1: 個人資料 -->
+        <form id="profile-panel-info" onsubmit="saveUserProfile(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">暱稱 / 稱呼</label>
+            <input type="text" id="profile-username" required class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">電子信箱 (不可變更)</label>
+            <input type="email" id="profile-email" readonly class="w-full bg-gray-950/60 border border-gray-800 text-gray-500 text-xs rounded-xl px-3.5 py-2.5 cursor-not-allowed">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">🎂 生日 <span class="text-gray-500 text-[10px]">(選填)</span></label>
+              <input type="date" id="profile-birthday" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">📞 聯絡電話 <span class="text-gray-500 text-[10px]">(選填)</span></label>
+              <input type="tel" id="profile-phone" placeholder="例如：0912-345-678" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">🏠 住家地址 <span class="text-gray-500 text-[10px]">(選填，要填不填都行)</span></label>
+            <input type="text" id="profile-address" placeholder="例如：台北市信義區信義路五段..." class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存個人資料
+          </button>
+        </form>
+
+        <!-- 分頁 2: 變更密碼 -->
+        <form id="profile-panel-pwd" onsubmit="submitChangePassword(event)" class="space-y-3.5 hidden">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">目前舊密碼</label>
+            <input type="password" id="pwd-old" required placeholder="請輸入您目前使用的密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">設定新密碼 (至少 4 碼)</label>
+            <input type="password" id="pwd-new" required minlength="4" placeholder="請輸入欲變更的新密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">再次確認新密碼</label>
+            <input type="password" id="pwd-confirm" required minlength="4" placeholder="請再次輸入新密碼" class="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-400 hover:from-yellow-400 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-shield-halved"></i> 確認更新密碼
+          </button>
+        </form>
+
+        <!-- 分頁 3: 每次登入紀錄 -->
+        <div id="profile-panel-logs" class="space-y-3 hidden">
+          <div class="flex items-center justify-between text-xs text-gray-400 pb-1">
+            <span>累計登入次數：<b id="my-logins-count" class="text-yellow-400 font-mono">0</b> 次</span>
+            <span class="text-[11px] text-gray-500">最近 50 次紀錄</span>
+          </div>
+          <div class="border border-gray-800 rounded-2xl overflow-hidden bg-gray-950">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-900 text-gray-400 border-b border-gray-800 text-[10px]">
+                <tr>
+                  <th class="py-2 px-3">#</th>
+                  <th class="py-2 px-3">每次登入時間</th>
+                  <th class="py-2 px-3">IP 位址</th>
+                </tr>
+              </thead>
+              <tbody id="my-logins-tbody" class="divide-y divide-gray-800 text-gray-300">
+                <tr><td colspan="3" class="py-6 text-center text-gray-500">載入中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 分頁 4: 帳號綁定 (Google, Discord, Scratch, YouTube) -->
+        <form id="profile-panel-bind" onsubmit="saveAccountBindings(event)" class="space-y-4 hidden">
+          <div class="bg-gray-950 border border-gray-800 rounded-2xl p-4 space-y-3.5">
+            <div class="border-b border-gray-800/80 pb-3 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                    <i class="fa-brands fa-google text-sm"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white">Google 帳號綁定 (OAuth 2.0)</div>
+                    <div id="bind-google-email" class="text-[11px] text-gray-500">載入中...</div>
+                  </div>
+                </div>
+                <div id="bind-google-status" class="text-xs">
+                  <span class="text-gray-400 text-[11px]">載入中...</span>
+                </div>
+              </div>
+              <div id="bind-google-action-area" class="pt-0.5">
+                <button type="button" onclick="startGoogleAccountBinding()"
+                        class="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-black py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow">
+                  <i class="fa-brands fa-google text-sm"></i>
+                  <span>透過 Google OAuth 授權綁定</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Discord 綁定 -->
+            <div class="space-y-1.5 pt-1">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-brands fa-discord text-indigo-400 text-sm"></i>
+                  <span>Discord 帳號名稱</span>
+                </label>
+                <span class="text-[10px] text-gray-500">同步社群身分組</span>
+              </div>
+              <input type="text" id="bind-discord-input" placeholder="例如：pikachu#1234 或 @pika_gaming"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+
+            <!-- Scratch 帳號綁定 -->
+            <div class="space-y-1.5 pt-1 border-t border-gray-800/80">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>🐱</span>
+                  <span>Scratch 官網帳號名稱</span>
+                </label>
+                <span class="text-[10px] text-yellow-400/90 font-bold">學員作品集展示</span>
+              </div>
+              <input type="text" id="bind-scratch-input" placeholder="請填寫 scratch.mit.edu 帳號"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+
+            <!-- YouTube 頻道綁定 -->
+            <div class="space-y-1.5 pt-1 border-t border-gray-800/80">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-brands fa-youtube text-red-500 text-sm"></i>
+                  <span>YouTube 頻道 / 代稱</span>
+                </label>
+                <span class="text-[10px] text-gray-500">創作者認證</span>
+              </div>
+              <input type="text" id="bind-youtube-input" placeholder="例如：@my_channel 或 頻道連結"
+                     class="w-full bg-[#111726] border border-gray-800 text-gray-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-yellow-400 placeholder-gray-600 transition">
+            </div>
+          </div>
+
+          <button type="submit" id="save-bindings-btn"
+                  class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold py-2.5 px-4 rounded-xl transition text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>儲存帳號綁定設定</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全域腳本 -->
+  <script src="js/common.js"></script>
+  <script>
+    let chatMessages = [];
+    let currentFilter = 'all'; // 'all', 'private', 'replied'
+    let autoRefreshTimer = null;
+    let replyingMessageId = null;
+
+    // 格式化聊天時間
+    function formatChatTime(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      const month = d.getMonth() + 1;
+      const day = d.getDate();
+      return `${month}/${day} ${hours}:${mins}`;
+    }
+
+    // 插入表情符號
+    function insertEmoji(emoji) {
+      const input = document.getElementById('chat-input');
+      input.value += emoji;
+      input.focus();
+    }
+
+    // 私密切換監聽
+    function onPrivateToggleChange(isPrivate) {
+      const hint = document.getElementById('private-mode-hint');
+      const input = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('send-msg-btn');
+      if (isPrivate) {
+        hint.classList.remove('hidden');
+        input.placeholder = "🔒 輸入你想對皮卡站長說的私密悄悄話... (其他人絕對看不到)";
+        input.classList.add('border-purple-500');
+        sendBtn.className = "bg-purple-600 hover:bg-purple-500 text-white font-black px-5 py-3 rounded-xl shadow transition transform hover:-translate-y-0.5 flex items-center gap-2 shrink-0";
+      } else {
+        hint.classList.add('hidden');
+        input.placeholder = "在此輸入想說的話... (Enter 發送，Shift+Enter 換行)";
+        input.classList.remove('border-purple-500');
+        sendBtn.className = "bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-black px-5 py-3 rounded-xl shadow transition transform hover:-translate-y-0.5 flex items-center gap-2 shrink-0";
+      }
+    }
+
+    // 鍵盤按下監聽 (Enter 發送)
+    function handleChatKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    }
+
+    // 切換篩選器
+    function setChatFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('#tab-all, #tab-private, #tab-replied').forEach(b => {
+        b.className = "text-xs px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition flex items-center gap-1";
+      });
+      const activeBtn = document.getElementById('tab-' + filter);
+      if (activeBtn) {
+        activeBtn.className = "text-xs px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-950 font-bold transition flex items-center gap-1";
+      }
+      renderChatMessages();
+    }
+
+    // 載入伺服器訊息
+    async function fetchChatMessages(silent = false) {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (!silent && refreshIcon) refreshIcon.classList.add('fa-spin');
+
+      const userEmail = (currentUser && currentUser.email) ? encodeURIComponent(currentUser.email) : '';
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/messages?userEmail=${userEmail}`);
+        const data = await res.json();
+        if (data.success) {
+          chatMessages = data.messages || [];
+          document.getElementById('chat-count-label').textContent = `共 ${chatMessages.length} 則交流訊息`;
+          renderChatMessages();
+        }
+      } catch (e) {
+        console.error('Fetch chat error:', e);
+      } finally {
+        if (!silent && refreshIcon) {
+          setTimeout(() => refreshIcon.classList.remove('fa-spin'), 400);
+        }
+      }
+    }
+
+    // 渲染訊息至畫面
+    function renderChatMessages() {
+      const container = document.getElementById('chat-messages-container');
+      const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+      const isAdmin = (userEmail === ADMIN_EMAIL.toLowerCase());
+
+      let list = chatMessages;
+      if (currentFilter === 'private') {
+        list = chatMessages.filter(m => m.isPrivate);
+      } else if (currentFilter === 'replied') {
+        list = chatMessages.filter(m => m.reply);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="py-16 text-center text-gray-500 text-xs space-y-2">
+            <i class="fa-regular fa-comment-dots text-2xl text-gray-600"></i>
+            <p>${currentFilter === 'private' ? '目前沒有屬於你的私密悄悄話。' : '目前尚無訊息，快來成為第一個發言的人吧！'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const shouldScroll = (container.scrollTop + container.clientHeight >= container.scrollHeight - 50);
+
+      container.innerHTML = '';
+      list.forEach(msg => {
+        const isMe = msg.isMe;
+        const isMsgAdmin = (msg.senderEmail && msg.senderEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase()) || msg.senderName.includes('皮卡站長');
+        const defaultAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(msg.senderName)}`;
+        const avatarUrl = msg.senderAvatar || defaultAvatar;
+
+        const card = document.createElement('div');
+        const cardStyle = msg.isPrivate ? 'private-msg-card p-4 rounded-2xl' : 'bg-[#151c2e] border border-[#243048] p-4 rounded-2xl';
+        card.className = `${cardStyle} space-y-2 transition`;
+
+        // 徽章標籤
+        let badgeHtml = '';
+        if (isMsgAdmin) {
+          badgeHtml = `<span class="text-[10px] bg-yellow-400 text-gray-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-bolt"></i> 皮卡站長</span>`;
+        } else if (msg.isPrivate) {
+          badgeHtml = `<span class="private-badge-pill text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-lock"></i> 私密悄悄話</span>`;
+        }
+
+        // 站長回覆區塊
+        let replyHtml = '';
+        if (msg.reply) {
+          replyHtml = `
+            <div class="mt-2.5 pt-2.5 border-t border-yellow-500/20 bg-yellow-400/5 p-3 rounded-xl flex items-start gap-2.5">
+              <span class="text-yellow-400 text-xs mt-0.5"><i class="fa-solid fa-bolt"></i></span>
+              <div class="text-xs space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-yellow-400 font-bold">${msg.reply.split('：')[0] || '皮卡站長'}</strong>
+                  <span class="text-[10px] text-gray-500">${formatChatTime(msg.replyTime)}</span>
+                </div>
+                <p class="text-gray-200 leading-relaxed">${escapeHtml(msg.reply.replace(/^[^：]+：/, ''))}</p>
+              </div>
+            </div>
+          `;
+        }
+
+        // 管理按鈕
+        let actionsHtml = '';
+        const canDelete = isAdmin || isMe;
+        if (isAdmin && !msg.reply) {
+          actionsHtml += `
+            <button onclick="openAdminReplyModal('${msg.id}', '${encodeURIComponent(msg.senderName)}', '${encodeURIComponent(msg.content)}')"
+                    class="text-[11px] text-yellow-400 hover:text-yellow-300 font-bold flex items-center gap-1">
+              <i class="fa-solid fa-reply"></i> <span>回覆</span>
+            </button>
+          `;
+        }
+        if (canDelete) {
+          actionsHtml += `
+            <button onclick="deleteChatMessage('${msg.id}')" class="text-[11px] text-gray-500 hover:text-red-400 transition" title="刪除此則訊息">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <img src="${avatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover border border-gray-700 bg-gray-900">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-white">${escapeHtml(msg.senderName)}</span>
+                  ${badgeHtml}
+                </div>
+                <span class="text-[10px] text-gray-500">${formatChatTime(msg.createdAt)}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${actionsHtml}
+            </div>
+          </div>
+          <div class="text-xs sm:text-sm text-gray-200 leading-relaxed pl-10 whitespace-pre-wrap">${escapeHtml(msg.content)}</div>
+          ${replyHtml}
+        `;
+
+        container.appendChild(card);
+      });
+
+      if (shouldScroll) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    // 發送聊天訊息
+    async function sendChatMessage() {
+      const nameInput = document.getElementById('chat-sender-name');
+      const contentInput = document.getElementById('chat-input');
+      const isPrivateBox = document.getElementById('chat-is-private');
+      const sendBtn = document.getElementById('send-msg-btn');
+
+      const content = contentInput.value.trim();
+      const senderName = nameInput.value.trim() || (currentUser ? currentUser.username : '熱情同學');
+      const isPrivate = isPrivateBox.checked;
+
+      if (!content) {
+        showToast('請輸入訊息內容！', 'info');
+        contentInput.focus();
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+
+      const payload = {
+        senderName: senderName,
+        senderEmail: currentUser ? (currentUser.email || '') : '',
+        senderAvatar: currentUser ? (currentUser.avatar || '') : '',
+        content: content,
+        isPrivate: isPrivate
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          contentInput.value = '';
+          showToast(data.tip || '訊息已發布！', 'success');
+          // 若原本勾選私密，提示並維持或重設
+          fetchChatMessages(false);
+          // 自動滾動到底部
+          setTimeout(() => {
+            const container = document.getElementById('chat-messages-container');
+            container.scrollTop = container.scrollHeight;
+          }, 300);
+        } else {
+          showToast(data.error || '發送失敗', 'error');
+        }
+      } catch (e) {
+        showToast('連線伺服器異常，請確認後端是否運行', 'error');
+      } finally {
+        sendBtn.disabled = false;
+        onPrivateToggleChange(isPrivateBox.checked);
+      }
+    }
+
+    // 刪除訊息
+    async function deleteChatMessage(msgId) {
+      if (!confirm('確定要刪除這則訊息嗎？')) return;
+      const userEmail = (currentUser && currentUser.email) ? encodeURIComponent(currentUser.email) : '';
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/messages/${msgId}?userEmail=${userEmail}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('訊息已成功刪除', 'success');
+          fetchChatMessages(false);
+        } else {
+          showToast(data.error || '刪除失敗', 'error');
+        }
+      } catch (e) {
+        showToast('刪除異常', 'error');
+      }
+    }
+
+    // 開啟站長回覆彈窗
+    function openAdminReplyModal(msgId, senderName, content) {
+      replyingMessageId = msgId;
+      document.getElementById('reply-target-preview').innerHTML = `
+        <span class="text-yellow-400 font-bold">${decodeURIComponent(senderName)}:</span> ${escapeHtml(decodeURIComponent(content))}
+      `;
+      document.getElementById('admin-reply-input').value = '';
+      document.getElementById('admin-reply-modal').classList.remove('hidden');
+      document.getElementById('admin-reply-modal').classList.add('flex');
+      document.getElementById('admin-reply-input').focus();
+    }
+
+    function closeAdminReplyModal() {
+      document.getElementById('admin-reply-modal').classList.add('hidden');
+      document.getElementById('admin-reply-modal').classList.remove('flex');
+      replyingMessageId = null;
+    }
+
+    async function submitAdminReply() {
+      if (!replyingMessageId) return;
+      const text = document.getElementById('admin-reply-input').value.trim();
+      if (!text) {
+        showToast('請輸入回覆內容！', 'info');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/messages/${replyingMessageId}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminEmail: currentUser ? currentUser.email : '',
+            reply: text
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('官方回覆已發布！', 'success');
+          closeAdminReplyModal();
+          fetchChatMessages(false);
+        } else {
+          showToast(data.error || '回覆失敗', 'error');
+        }
+      } catch (e) {
+        showToast('伺服器異常', 'error');
+      }
+    }
+
+    // 自動重整切換
+    function toggleAutoRefresh(enabled) {
+      if (enabled) {
+        startAutoRefresh();
+      } else {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+      }
+    }
+
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => {
+        fetchChatMessages(true);
+      }, 3000);
+    }
+
+    // HTML 轉義防 XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 登入狀態變更回呼
+    window.onAuthSuccess = function(user) {
+      if (user) {
+        document.getElementById('chat-sender-name').value = user.username || '';
+      }
+      fetchChatMessages(false);
+    };
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      initGoogleAuth();
+      if (currentUser && currentUser.username) {
+        document.getElementById('chat-sender-name').value = currentUser.username;
+      }
+      fetchChatMessages(false);
+      startAutoRefresh();
+    });
+  </script>
+</body>
+</html>
